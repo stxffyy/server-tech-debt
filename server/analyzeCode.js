@@ -2,14 +2,17 @@ const fs = require("node:fs")
 const fsPromises = require("node:fs/promises")
 const { exec } = require("child_process")
 const glob = require('glob')
-const checkFile = require('./config/rules')
+const downloadConfig = require('./downloadConfig2')
 const path = require("path")
 const config = require('./config/config.json')
+// const checkFile = require('./config/rules')
 
 const allErrorsInRepository = [];
 const pathToJsonConfigFile = "./config/config.json"
 const tempFolderName = 'tmp'
 const repositoryPath = config.repositories[0].url
+const repositoryURL = 'https://github.com/stxffyy/config'; //  URL репозитория с конфигом
+const destinationFolder = './config'; // путь к папке, в которую скачается репозиторий
 const readFrom = __dirname
 // console.log('readFrom: ', readFrom)
 
@@ -156,6 +159,11 @@ async function analyze() {
         console.log(e);
     }
     try {
+        downloadConfig(repositoryURL, destinationFolder)
+    } catch (e) {
+        console.log(e)
+    }
+    try {
         const data = require(pathToJsonConfigFile);
 
         for (let repository of data.repositories) {
@@ -178,7 +186,7 @@ async function analyze() {
                 }
             }
         }
-        // console.log(allErrorsInRepository);
+        console.log(allErrorsInRepository);
         return allErrorsInRepository;
     } catch (error) {
         console.error('Ошибка при анализе:', error);
@@ -186,7 +194,7 @@ async function analyze() {
     }
 }
 
-// analyze()
+analyze()
 
 module.exports = analyze
 
