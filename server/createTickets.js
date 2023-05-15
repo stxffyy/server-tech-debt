@@ -1,32 +1,40 @@
-const analyze = require('./analyzeCode');
 require('dotenv').config()
+const getMistakeFields = require('./getMistakeFields')
 const requestUrl = 'https://stxffyy.atlassian.net/rest/api/2/issue'
 
-
-// получаем массив ошибок после анализа кода
-function getAnalyze() {
+function execGetMistakeFields() {
     return new Promise((resolve, reject) => {
-        analyze()
+        getMistakeFields()
             .then((result) => {
-                resolve(result);
-                console.log(result)
+                // console.log(result);
+                const requests = result.map(mistakeField => {
+                    return sendRequest('POST', requestUrl, mistakeField, "summaryName");
+                });
+
+                Promise.all(requests)
+                    .then(() => {
+                        resolve();
+                    })
+                    .catch(error => {
+                        reject(error);
+                    });
             })
             .catch((error) => {
-                console.error(error);
                 reject(error);
             });
     });
 }
+execGetMistakeFields();
 
 // ф-ия для отправки запроса на Jira (создание тикетов)
-function sendRequest(method, url, mistake, summaryname, body = null) {
+function sendRequest(method, url, mistake, summaryName, body = null) {
     return new Promise((resolve, reject) => {
         const bodyData = {
             "fields": {
                 "project": {
                     "id": "10001"
                 },
-                "summary": summaryname,
+                "summary": summaryName,
                 "description": mistake,
                 "issuetype": {
                     "id": "10005"
@@ -56,6 +64,7 @@ function sendRequest(method, url, mistake, summaryname, body = null) {
     });
 }
 
+
 // модифицируем каждую ошибку из массива в строку и для каждой ошибки создаем тикет на Jira 
 // mistakeString - описание в тикете
 // summaryname - название тикета
@@ -71,4 +80,4 @@ async function modificateMistakes() {
     await Promise.all(promises);
 }
 
-modificateMistakes()
+// modificateMistakes()

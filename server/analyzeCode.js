@@ -2,10 +2,9 @@ const fs = require("node:fs")
 const fsPromises = require("node:fs/promises")
 const { exec } = require("child_process")
 const glob = require('glob')
-const downloadConfig = require('./downloadConfig2')
+const downloadConfig = require('./downloadConfig')
 const path = require("path")
 const config = require('./config/config.json')
-// const checkFile = require('./config/rules')
 
 const allErrorsInRepository = [];
 const pathToJsonConfigFile = "./config/config.json"
@@ -14,7 +13,6 @@ const repositoryPath = config.repositories[0].url
 const repositoryURL = 'https://github.com/stxffyy/config'; //  URL репозитория с конфигом
 const destinationFolder = './config'; // путь к папке, в которую скачается репозиторий
 const readFrom = __dirname
-// console.log('readFrom: ', readFrom)
 
 
 // клонирование указанного репозитория в локальную папку.
@@ -186,7 +184,7 @@ async function analyze() {
                 }
             }
         }
-        console.log(allErrorsInRepository);
+        // console.log(allErrorsInRepository);
         return allErrorsInRepository;
     } catch (error) {
         console.error('Ошибка при анализе:', error);
@@ -194,87 +192,6 @@ async function analyze() {
     }
 }
 
-analyze()
-
-module.exports = analyze
-
-// async function analyze() {
-//     try {
-//         deleteFolderRecursive(tempFolderName);
-//     } catch (e) {
-//         console.log(e);
-//     }
-//     try {
-//         fs.mkdirSync(tempFolderName);
-//     } catch (e) { }
-//     for (let item of collection) { // могу пробегаться не по этой коллекции, а по конфигу
-//         // console.log('repositoryPath: ', item.repositoryPath);
-//         const allErrorsInRepository = []
-//         // клонирование указанного репозитория из коллекции
-//         const pathToDownloadedRepository = await downloadRepository(item.repositoryPath);
-//         // console.log('pathToDownloadedRepository: ', pathToDownloadedRepository);
-//         for (let rule of item.rules) {
-//             // rule в себе хранит ф-ию и паттерн
-//             //console.log("rule: " + rule.pattern)
-//             // получаем массив файлов из репо, которые удовл паттерну, чтобы их проверять на ошибки
-//             const files = await promisifiedGlob(rule.pattern, { cwd: pathToDownloadedRepository });
-//             // console.log("files: " + files)
-//             for (let filePath of files) { // пробегаемся по массиву файлов
-//                 // получаем код из каждого файла
-//                 const code = (await fsPromises.readFile(path.resolve(pathToDownloadedRepository, filePath))).toString();
-//                 //console.log("code: " + code);
-//                 //console.log("filePath: " + filePath)
-//                 // в rule лежит объект correctEndOfFile, ктр с свою очередь имеет поля pattern и function
-//                 // errors - массив объектов для ошибок
-//                 const errors = await rule.function(code, filePath);
-//                 // console.log('errors: ' + errors[0].url)
-//                 allErrorsInRepository.push(...errors);
-//             }
-//         }
-//         // console.log('allErrorsInRepository', allErrorsInRepository);
-//         return allErrorsInRepository;
-//     }
-// }
 // analyze()
 
-
-// const correctEndOfFile = {
-//     pattern: '*(*.js|*.html|*.json|*.css)',
-//     function: async (code, filepath) => {
-//         if (checkFile(code)) {
-//             return []
-//         } else {
-//             try {
-//                 const branchName = await getBranchName(repositoryPath);
-//                 return [
-//                     {
-//                         message: `В данном файле отсутствует перенос строки в конце`,
-//                         lineNumber: code.split('\n').length,
-//                         columnNumber: 0,
-//                         filepath,
-//                         url: `Ссылка на ошибку: ${repositoryPath}/blob/${branchName}/${filepath}#L${code.split('\n').length}`,
-//                     }
-//                 ]
-//             } catch (error) {
-//                 console.error('Ошибка при получении имени ветки:', error);
-//                 return [];
-//             }
-//         }
-//     }
-// }
-
-// // Правило на проверку \n в конце. Проверяет все файлы css, html, json, js
-// const collection = [
-//     {
-//         repositoryPath: 'https://github.com/stxffyy/example3',
-//         rules: [
-//             correctEndOfFile
-//         ]
-//     },
-//     // {
-//     //     repositoryPath: 'https://github.com/stxffyy/example3',
-//     //     rules: [
-//     //         correctEndOfFile
-//     //     ]
-//     // }
-// ]
+module.exports = analyze
