@@ -1,0 +1,22 @@
+{
+    "repositories": [
+        {
+            "id": 1,
+            "url": "https://github.com/stxffyy/example3",
+            "supporters": [
+                {
+                    "userId": "sadasdasd"
+                }
+            ]
+        }
+    ],
+    "rules": [
+        {
+            "id": 1,
+            "title": "noNewLineAtTheEnd",
+            "description:": "Отсутствует перенос строки в конце файла",
+            "ruleImplementation": "./rules/noNewLineAtTheEnd.js",
+            "pattern": "*(*.js|*.html|*.json|*.css)"
+        }
+    ]
+}
