@@ -1,6 +1,5 @@
 function noNewLineAtTheEnd(code) {
-    code.endsWith('\n')
-    //console.log('вы прекрасны')
+    return code.endsWith('\n')
   }
   
 module.exports = noNewLineAtTheEnd;

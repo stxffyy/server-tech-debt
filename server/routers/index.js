@@ -4,15 +4,19 @@ const Router = require('express')
 const router = new Router()
 
 //импортируем роутеры
+const mistakeRouter = require('./mistakeRouter')
+const configRouter = require('./configRouter')
 const taskRouter = require('./taskRouter')
-const employeeRouter = require('./employeeRouter')
+const analyzeRouter = require('./analyzeRouter')
 
 
 //объединяем роутеры
 // 1-й параметр - url, по ктр будет отрабатывать роутер
 // 2-й - сам роутер
-router.use('/employee', employeeRouter)
+router.use('/mistake', mistakeRouter)
+router.use('/config', configRouter)
 router.use('/task', taskRouter)
+router.use('/analyze', analyzeRouter)
 
 
 //экспортируем роутер
