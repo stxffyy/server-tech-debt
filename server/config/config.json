@@ -3,22 +3,17 @@
         {
             "id": 0,
             "title": "logs-app-master",
-            "url": "https://github.com/stxffyy/logs-app-master",
-            "supporters": [
-                {
-                    "userId": "sadasdasd"
-                }
-            ]
+            "url": "https://github.com/stxffyy/logs-app-master"
         },
         {
             "id": 1,
             "title": "example3",
-            "url": "https://github.com/stxffyy/example3",
-            "supporters": [
-                {
-                    "userId": "sadasdasd"
-                }
-            ]
+            "url": "https://github.com/stxffyy/example3"
+        },
+        {
+            "id": 2,
+            "title": "smarthome",
+            "url": "https://github.com/stxffyy/smarthome"
         }
     ],
     "rules": [
@@ -27,7 +22,7 @@
             "title": "noNewLineAtTheEnd",
             "description": "В файле отсутствует перенос строки",
             "ruleImplementation": "./rules/noNewLineAtTheEnd.js",
-            "pattern": "*(*.js|*.html|*.json|*.css)"
+            "pattern": "**/*(*.js|*.html|package.json|*.css)"
         },
         {
             "id": 1,

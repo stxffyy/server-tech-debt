@@ -85,24 +85,11 @@ async function deleteFolderRecursive(path) {
         }
     })
 }
-
 // deleteFolderRecursive(tempFolderName)
 
 
 // промис будет разрешен с массивом найденных файлов, если функция glob выполнена успешно, 
 // или будет отклонен с ошибкой, если возникла ошибка при выполнении glob.
-async function promisifiedGlob(pattern, settings) {
-    return new Promise((resolve, reject) => {
-        glob(pattern, settings, (err, files) => {
-            if (err) {
-                return reject(err);
-            }
-            resolve(files);
-        })
-    })
-
-}
-
 async function promisifiedGlob(pattern, settings) {
     return new Promise((resolve, reject) => {
         glob(pattern, { ...settings, nodir: true, mark: true }, (err, files) => {
@@ -155,7 +142,6 @@ async function getBranchName(repoUrl) {
       throw error;
     }
   }
-  
 //  getBranchName("https://github.com/stxffyy/logs-app-master")
 
 
@@ -254,10 +240,8 @@ async function analyze() {
         throw error;
     }
 }
-
 // analyze()
 
-// module.exports = analyze
 module.exports = {
     downloadRepository: downloadRepository,
     deleteFolderRecursive: deleteFolderRecursive,
