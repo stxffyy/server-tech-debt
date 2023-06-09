@@ -19,11 +19,11 @@ function checkReactVersion(packageJsonCode) {
           } else return false;
         }
       } else {
-        return 0
+        return -1
       }
     } catch (error) {
       console.error('Error parsing package.json:', error);
     }
   }
 
-  module.exports = checkReactVersion;
+module.exports = checkReactVersion;
