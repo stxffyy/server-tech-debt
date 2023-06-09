@@ -1,15 +1,16 @@
 require('dotenv').config()
 const { Mistake } = require('../models/models')
+const sequelize = require('../database')
 
 // Функция для сохранения ошибок в БД
 async function saveMistakesToDatabase(mistakes) {
   return new Promise(async (resolve, reject) => {
     try {
 
-      // await sequelize.authenticate();
-      // console.log('Успешное подключение к БД');
+      await sequelize.authenticate();
+      console.log('Успешное подключение к БД');
 
-      // await sequelize.sync();
+      await sequelize.sync();
 
       for (const error of mistakes) {
         const mistake = {

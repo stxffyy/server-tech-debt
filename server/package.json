@@ -6,6 +6,12 @@
   "scripts": {
     "dev": "nodemon index.js"
   },
+  "nodemonConfig": {
+    "ignore": [
+      "./tmp",
+      "./config"
+    ]
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

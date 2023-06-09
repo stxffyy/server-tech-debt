@@ -1,3 +1,4 @@
+require('dotenv').config()
 const fs = require("node:fs")
 const fsPromises = require("node:fs/promises")
 const { exec } = require("child_process")
@@ -25,39 +26,11 @@ async function downloadRepository(repositoryPath) {
             //     return reject(error)
             // }
             // console.log(folderName)
-            return resolve()
+            return resolve(folderName)
         })
     })
 }
-// fs.mkdirSync('tmp');
-downloadRepository("https://github.com/stxffyy/example3")
-
-// async function downloadRepository(repositoryPath) {
-//     return new Promise((resolve, reject) => {
-//       const folderName = 'temp';
-  
-//       // Клонирование репозитория в папку
-//       exec(`git clone ${repositoryPath} ${folderName}`, (error, stdout, stderr) => {
-//         if (error) {
-//           console.error(`Ошибка: ${error.message}`);
-//           return reject(error);
-//         }
-//         console.log(`Репозиторий успешно склонирован в папку "${folderName}".`);
-//         return resolve();
-//       });
-//     });
-//   }
-  
-//   // Пример использования функции
-//   const repositoryPath = 'https://github.com/stxffyy/example3';
-// //   fs.mkdirSync('tmp');
-//   downloadRepository(repositoryPath)
-//     .then(() => {
-//       console.log('Скачивание репозитория завершено.');
-//     })
-//     .catch((error) => {
-//       console.error('Произошла ошибка при скачивании репозитория:', error);
-//     });
+// downloadRepository("https://github.com/stxffyy/example3")
 
 // рекурсивное удаление файлов и папки
 async function deleteFolderRecursive(path) {
@@ -113,7 +86,7 @@ async function deleteFolderRecursive(path) {
     })
 }
 
-deleteFolderRecursive(tempFolderName)
+// deleteFolderRecursive(tempFolderName)
 
 
 // промис будет разрешен с массивом найденных файлов, если функция glob выполнена успешно, 
@@ -130,43 +103,63 @@ async function promisifiedGlob(pattern, settings) {
 
 }
 
-// ф-ия позволяет получить имя текущей ветки для указанного репозитория на GitHub
-async function getBranchName(repoUrl) {
+async function promisifiedGlob(pattern, settings) {
     return new Promise((resolve, reject) => {
-        const regex = /https:\/\/github\.com\/(.+)\/(.+)/
-        const matches = repoUrl.match(regex)
-
-        const owner = matches[1]
-        const repo = matches[2]
-
-        console.log(`Имя владельца: ${owner}`)
-        console.log(`Название репозитория: ${repo}`)
-
-        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/git/refs/heads`
-
-        fetch(apiUrl)
-            .then(response => response.json())
-            .then(data => {
-                if (Array.isArray(data) && data.length > 0) {
-                    const branchName = data[0].ref.split('/').pop()
-                    console.log(`Имя текущей ветки: ${branchName}`)
-                    resolve(branchName)
-                } else {
-                    console.log('В репозитории нет веток')
-                    resolve('') // Возвращаем пустую строку, если нет веток
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка при получении имени ветки:', error)
-                reject(error)
-            })
+        glob(pattern, { ...settings, nodir: true, mark: true }, (err, files) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(files);
+        })
     })
 }
 
 
+// ф-ия позволяет получить имя текущей ветки для указанного репозитория на GitHub
+async function getBranchName(repoUrl) {
+    try {
+      const regex = /https:\/\/github\.com\/(.+)\/(.+)/;
+      const matches = repoUrl.match(regex);
+  
+      const owner = matches[1];
+      const repo = matches[2];
+  
+      console.log(`Имя владельца: ${owner}`);
+      console.log(`Название репозитория: ${repo}`);
+  
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/git/refs/heads`;
+  
+      const response = await fetch(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`
+        }
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        // console.log("data", data);
+  
+        if (Array.isArray(data) && data.length > 0) {
+          const branchName = data[0].ref.split('/').pop();
+          console.log(`Имя текущей ветки: ${branchName}`);
+          return branchName;
+        } else {
+          console.log('В репозитории нет веток');
+          return ''; // Возвращаем пустую строку, если нет веток
+        }
+      } else {
+        throw new Error('Ошибка при получении имени ветки');
+      }
+    } catch (error) {
+      console.error('Ошибка при получении имени ветки:', error);
+      throw error;
+    }
+  }
+  
+//  getBranchName("https://github.com/stxffyy/logs-app-master")
 
-// 
-function getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, ruleId, ruleMessage) {
+
+function getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, ruleId, ruleMessage, branchName) {
     const endOfFileObject = {
         asyncFunction: async () => {
             // console.error(code);
@@ -174,10 +167,6 @@ function getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, rul
                 return []
             } else {
                 try {
-                    const branchName = await getBranchName(repositoryPat).catch(error => {
-                        console.error('Ошибка при получении имени ветки:', error)
-                        return ''
-                    })
                     return [
                         {
                             message: ruleMessage,
@@ -201,8 +190,8 @@ function getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, rul
     return endOfFileObject.asyncFunction;
 }
 
-async function executeGetArrOfMistakes(callback, code, filePath, repositoryPat, repoId, ruleId, ruleMessage) {
-    const asyncFunction = getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, ruleId, ruleMessage);
+async function executeGetArrOfMistakes(callback, code, filePath, repositoryPat, repoId, ruleId, ruleMessage, branchName) {
+    const asyncFunction = getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, ruleId, ruleMessage, branchName);
     const mistakes = await asyncFunction();
     // console.log(mistakes) // возвращаются ошибки
     await saveMistakesToDatabase(mistakes)
@@ -219,55 +208,60 @@ async function executeGetArrOfMistakes(callback, code, filePath, repositoryPat, 
 // Выполняет функцию проверки правила и добавляет ошибки в массив allMistakesInRepository.
 // Возвращает итоговый массив ошибок allMistakesInRepository.
 
-// async function analyze() {
-//     try {
-//         await deleteFolderRecursive(tempFolderName);
-//         fs.mkdirSync(tempFolderName);
+async function analyze() {
+    try {
+        await deleteFolderRecursive(tempFolderName);
+        fs.mkdirSync(tempFolderName);
 
-//         const data = require(pathToJsonConfigFile);
+        const data = require(pathToJsonConfigFile);
 
-//         for (let repository of data.repositories) {
-//             // console.log(repository.url)
-//             const pathToDownloadedRepository = await downloadRepository(repository.url);
-//             const repoId = repository.id
-//             const repositoryPat = repository.url
+        for (let repository of data.repositories) {
+            // console.log(repository.url)
+            const pathToDownloadedRepository = await downloadRepository(repository.url);
+            const repoId = repository.id
+            const repositoryPat = repository.url
+            const branchName = await getBranchName(repositoryPat).catch(error => {
+                    console.error('Ошибка при получении имени ветки:', error)
+                    return ''
+                })
 
-//             for (let rule of data.rules) {
-//                 const ruleId = rule.id
-//                 const pathToImplementation = rule.ruleImplementation
-//                 const ruleMessage = rule.description
-//                 // console.log("message", ruleMessage)
-//                 const updatedPathToImplementation = pathToImplementation.replace(/\.\/(.*)/, './config/$1')
-//                 const ruleImplementation = require(updatedPathToImplementation)
-//                 const pattern = rule.pattern
-//                 const files = await promisifiedGlob(pattern, { cwd: pathToDownloadedRepository })
+            for (let rule of data.rules) {
+                const ruleId = rule.id
+                const pathToImplementation = rule.ruleImplementation
+                const ruleMessage = rule.description
+                // console.log("message", ruleMessage)
+                const updatedPathToImplementation = pathToImplementation.replace(/\.\/(.*)/, './config/$1')
+                const ruleImplementation = require(updatedPathToImplementation)
+                const pattern = rule.pattern
+                const files = await promisifiedGlob(pattern, { cwd: pathToDownloadedRepository })
+                console.log(files)
 
-//                 for (let filePath of files) {
-//                     const code = (await fsPromises.readFile(path.resolve(pathToDownloadedRepository, filePath))).toString()
-//                     if (typeof ruleImplementation === 'function') {
-//                         await executeGetArrOfMistakes(ruleImplementation, code, filePath, repositoryPat, repoId, ruleId, ruleMessage)
-//                     } else {
-//                         console.error(`Функция проверки не найдена в файле реализации правила: ${updatedPathToImplementation}`)
-//                     }
-//                 }
-//             }
-//         }
-//         console.log(allMistakesInRepository);
-//         return allMistakesInRepository;
+                for (let filePath of files) {
+                    const code = (await fsPromises.readFile(path.resolve(pathToDownloadedRepository, filePath))).toString()
+                    if (typeof ruleImplementation === 'function') {
+                        await executeGetArrOfMistakes(ruleImplementation, code, filePath, repositoryPat, repoId, ruleId, ruleMessage, branchName)
+                    } else {
+                        console.error(`Функция проверки не найдена в файле реализации правила: ${updatedPathToImplementation}`)
+                    }
+                }
+            }
+        }
+        console.log(allMistakesInRepository);
+        return allMistakesInRepository;
 
-//     } catch (error) {
-//         console.error('Ошибка при анализе:', error);
-//         throw error;
-//     }
-// }
+    } catch (error) {
+        console.error('Ошибка при анализе:', error);
+        throw error;
+    }
+}
 
 // analyze()
 
 // module.exports = analyze
-// module.exports = {
-//     downloadRepository: downloadRepository,
-//     deleteFolderRecursive: deleteFolderRecursive,
-//     getArrayOfMistakes: getArrayOfMistakes,
-//     getBranchName: getBranchName,
-//     analyze: analyze
-// }
+module.exports = {
+    downloadRepository: downloadRepository,
+    deleteFolderRecursive: deleteFolderRecursive,
+    getArrayOfMistakes: getArrayOfMistakes,
+    getBranchName: getBranchName,
+    analyze: analyze
+}
