@@ -5,8 +5,6 @@ const sequelize = require('./database.js')
 const express = require('express')
 const cors = require('cors')
 const router = require('./routers/index')
-const errorHandler = require('./middleware/ErrorHandlingMiddleware')
-const path = require('path')
 
 const PORT = process.env.PORT || 3010
 //порт, на ктр будет работать наше приложение
@@ -18,20 +16,15 @@ app.use(cors())
 app.use(express.json())
 app.use('/api', router)
 
-//Обработка ошибок, последний middleware
-app.use(errorHandler)
 
 
 const start = async () => {
     try {
         await sequelize.authenticate()
-        //подключение к бд
 
         await sequelize.sync()
 
         app.listen(PORT, () => console.log(`Server started on port ${PORT}`))
-        // вызываем ф-юю listen, в ктр указываем порт, ктр должен прослушивать наш сервер
-        // и колбэк, который сработает при успешном запуске сервера
     } catch (e) {
         console.log(e)
     }

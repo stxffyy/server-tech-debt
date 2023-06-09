@@ -1,7 +1,18 @@
 {
     "repositories": [
         {
+            "id": 0,
+            "title": "logs-app-master",
+            "url": "https://github.com/stxffyy/logs-app-master",
+            "supporters": [
+                {
+                    "userId": "sadasdasd"
+                }
+            ]
+        },
+        {
             "id": 1,
+            "title": "example3",
             "url": "https://github.com/stxffyy/example3",
             "supporters": [
                 {
@@ -12,11 +23,18 @@
     ],
     "rules": [
         {
-            "id": 1,
+            "id": 0,
             "title": "noNewLineAtTheEnd",
-            "description:": "Отсутствует перенос строки в конце файла",
+            "description": "В файле отсутствует перенос строки",
             "ruleImplementation": "./rules/noNewLineAtTheEnd.js",
             "pattern": "*(*.js|*.html|*.json|*.css)"
+        },
+        {
+            "id": 1,
+            "title": "checkReactVersion",
+            "description": "Версия React ниже 18.0.0",
+            "ruleImplementation": "./rules/checkReactVersion.js",
+            "pattern": "**/package.json"
         }
     ]
 }

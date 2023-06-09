@@ -6,6 +6,12 @@
   "scripts": {
     "dev": "nodemon index.js"
   },
+  "nodemonConfig": {
+    "ignore": [
+      "./tmp",
+      "./config"
+    ]
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -28,6 +34,9 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.22.2",
+    "@babel/register": "^7.21.0",
+    "jest": "^29.5.0",
     "nodemon": "^2.0.20",
     "sequelize-cli": "^6.6.0"
   }
