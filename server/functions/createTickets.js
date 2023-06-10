@@ -1,5 +1,4 @@
 require('dotenv').config()
-const requestUrl = 'https://stxffyy.atlassian.net/rest/api/2/issue'
 
 // ф-ия для отправки запроса на Jira (создание тикетов)
 function sendRequest(method, url, description, summaryName) {
