@@ -1,5 +1,5 @@
-/node_modules
-/.env
-/configForBD
-/migrations
-
+node_modules
+.env
+migrations
+tmp
+config

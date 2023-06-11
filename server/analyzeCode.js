@@ -5,6 +5,7 @@ const { exec } = require("child_process")
 const glob = require('glob')
 const path = require("path")
 const saveMistakesToDatabase = require('./functions/addMistakesToDB')
+const { v4: uuidv4 } = require('uuid');
 
 const allMistakesInRepository = [];
 const pathToJsonConfigFile = './config/config.json'
@@ -14,7 +15,7 @@ const tempFolderName = 'tmp'
 
 // скачивание указанного репозитория в локальную папку tmp
 async function downloadRepository(repositoryPath) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _) => {
         // папка для скачивания репозитория
         const folderName = path.resolve(tempFolderName, repositoryPath.split('/').slice(-1)[0])
         console.log("tempFolderName: " + tempFolderName + "\n" + 'repositoryPath: ' + repositoryPath + "\n" + 'Folder name: ' + folderName)
@@ -153,6 +154,7 @@ function getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, rul
                 return []
             } else {
                 try {
+                    const mistakeId = uuidv4();
                     return [
                         {
                             message: ruleMessage,
@@ -162,7 +164,6 @@ function getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, rul
                             url: `${repositoryPat}/blob/${branchName}/${filePath}#L${code.split('\n').length}`,
                             ruleId: ruleId,
                             repositoryId: repoId,
-                            jiraTaskId: 1,
                         }
                     ]
                 } catch (error) {

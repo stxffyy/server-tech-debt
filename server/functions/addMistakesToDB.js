@@ -20,7 +20,6 @@ async function saveMistakesToDatabase(mistakes) {
           url: error.url,
           repositoryId: error.repositoryId,
           ruleId: error.ruleId,
-          jiraTaskId: 1,
         };
 
         try {
