@@ -1,17 +1,17 @@
 require('dotenv').config()
 
 // ф-ия для отправки запроса на Jira (создание тикетов)
-function sendRequest(method, url, description, summaryName) {
+async function sendRequest(method, url, description, summaryName) {
     return new Promise((resolve, reject) => {
         const bodyData = {
             "fields": {
                 "project": {
-                    "id": "10001"
+                    "id": process.env.JIRA_PROJECT_ID
                 },
                 "summary": summaryName,
                 "description": description,
                 "issuetype": {
-                    "id": "10005"
+                    "id": process.env.JIRA_ISSUE_TYPE_ID
                 }
             }
         };

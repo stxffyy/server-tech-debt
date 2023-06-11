@@ -17,16 +17,11 @@ app.use(express.json())
 app.use('/api', router)
 
 
-
-const start = async () => {
-    try {
-        await sequelize.authenticate()
-
-        await sequelize.sync()
-
-        app.listen(PORT, () => console.log(`Server started on port ${PORT}`))
-    } catch (e) {
-        console.log(e)
-    }
+async function init(){
+    await sequelize.authenticate()
+    await sequelize.sync()
+    console.log(`Server started on port ${PORT}`)
 }
-start()
+
+const server = app.listen(PORT, init)
+server.on("close", sequelize.close)
