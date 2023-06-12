@@ -6,7 +6,7 @@ const Mistake = sequelize.define("mistakes", {
     message: { type: DataTypes.TEXT, allowNull: false },
     lineNumber: { type: DataTypes.INTEGER },
     filePath: { type: DataTypes.STRING, allowNull: false },
-    url: { type: DataTypes.STRING, allowNull: false },
+    url: { type: DataTypes.STRING, allowNull: false, unique: true },
     ruleId: { type: DataTypes.INTEGER, allowNull: false },
     repositoryId: { type: DataTypes.INTEGER, allowNull: false },
     taskId: {type: DataTypes.STRING, allowNull: true, defaultValue: null}
