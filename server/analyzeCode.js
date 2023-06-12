@@ -5,7 +5,6 @@ const { exec } = require("child_process")
 const glob = require('glob')
 const path = require("path")
 const saveMistakesToDatabase = require('./functions/addMistakesToDB')
-const { v4: uuidv4 } = require('uuid');
 
 const allMistakesInRepository = [];
 const pathToJsonConfigFile = './config/config.json'
@@ -115,7 +114,7 @@ async function getBranchName(repoUrl) {
       console.log(`Имя владельца: ${owner}`);
       console.log(`Название репозитория: ${repo}`);
   
-      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/git/refs/heads`;
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
   
       const response = await fetch(apiUrl, {
         headers: {
@@ -127,14 +126,9 @@ async function getBranchName(repoUrl) {
         const data = await response.json();
         // console.log("data", data);
   
-        if (Array.isArray(data) && data.length > 0) {
-          const branchName = data[0].ref.split('/').pop();
-          console.log(`Имя текущей ветки: ${branchName}`);
-          return branchName;
-        } else {
-          console.log('В репозитории нет веток');
-          return ''; // Возвращаем пустую строку, если нет веток
-        }
+        const defaultBranch = data.default_branch;
+        console.log(`Дефолтная ветка: ${defaultBranch}`);
+        return defaultBranch;
       } else {
         throw new Error('Ошибка при получении имени ветки');
       }
@@ -143,7 +137,7 @@ async function getBranchName(repoUrl) {
       throw error;
     }
   }
-//  getBranchName("https://github.com/stxffyy/logs-app-master")
+//  getBranchName("https://github.com/airbnb/lottie-web")
 
 
 function getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, ruleId, ruleMessage, branchName) {
@@ -154,7 +148,6 @@ function getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, rul
                 return []
             } else {
                 try {
-                    const mistakeId = uuidv4();
                     return [
                         {
                             message: ruleMessage,
@@ -203,7 +196,6 @@ async function analyze() {
         const data = require(pathToJsonConfigFile);
 
         for (let repository of data.repositories) {
-            // console.log(repository.url)
             const pathToDownloadedRepository = await downloadRepository(repository.url);
             const repoId = repository.id
             const repositoryPat = repository.url
