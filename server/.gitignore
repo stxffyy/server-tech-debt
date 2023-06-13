@@ -3,3 +3,4 @@ node_modules
 migrations
 tmp
 config
+/functions/test.js

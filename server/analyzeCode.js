@@ -13,19 +13,18 @@ const tempFolderName = 'tmp'
 
 
 // скачивание указанного репозитория в локальную папку tmp
-async function downloadRepository(repositoryPath) {
-    return new Promise((resolve, _) => {
+async function downloadRepository(repositoryPath, token) {
+    return new Promise((resolve, reject) => {
         // папка для скачивания репозитория
         const folderName = path.resolve(tempFolderName, repositoryPath.split('/').slice(-1)[0])
         console.log("tempFolderName: " + tempFolderName + "\n" + 'repositoryPath: ' + repositoryPath + "\n" + 'Folder name: ' + folderName)
 
-        // клонирование репозитория в папку 
-        exec(`cd ${tempFolderName} && git clone ${repositoryPath}`, (error, stdout, stderr) => {
-            // if (error) {
-            //     // console.log(`error: ${error.message}`)
-            //     return reject(error)
-            // }
-            // console.log(folderName)
+        // клонирование репозитория в папку с использованием токена аутентификации
+        exec(`cd ${tempFolderName} && git clone ${repositoryPath.replace('https://', `https://${token}@`)}`, (error, stdout, stderr) => {
+            if (error) {
+                return reject(error)
+            }
+            console.log(folderName)
             return resolve(folderName)
         })
     })
@@ -139,6 +138,42 @@ async function getBranchName(repoUrl) {
   }
 //  getBranchName("https://github.com/airbnb/lottie-web")
 
+async function getBitbucketDefaultBranch(repoUrl) {
+    try {
+      const regex = /https:\/\/bitbucket\.org\/(.+)\/(.+)/;
+      const matches = repoUrl.match(regex);
+  
+      const owner = matches[1];
+      const repo = matches[2];
+  
+      console.log(`Имя владельца: ${owner}`);
+      console.log(`Название репозитория: ${repo}`);
+  
+      const apiUrl = `https://api.bitbucket.org/2.0/repositories/${owner}/${repo}`;
+  
+      const response = await fetch(apiUrl, {
+        headers: {
+          Authorization: `Basic ${Buffer.from(`${process.env.BITBUCKET_USERNAME}:${process.env.BITBUCKET_PASSWORD}`).toString('base64')}`
+        }
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+  
+        const defaultBranch = data.mainbranch.name;
+        console.log(`Дефолтная ветка: ${defaultBranch}`);
+        return defaultBranch;
+      } else {
+        throw new Error('Ошибка при получении имени ветки');
+      }
+    } catch (error) {
+      console.error('Ошибка при получении имени ветки:', error);
+      throw error;
+    }
+  }
+//   getBitbucketDefaultBranch("https://bitbucket.org/stxffyy-diploma/tech-debt-client");
+  
+
 
 function getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, ruleId, ruleMessage, branchName) {
     const endOfFileObject = {
@@ -199,10 +234,20 @@ async function analyze() {
             const pathToDownloadedRepository = await downloadRepository(repository.url);
             const repoId = repository.id
             const repositoryPat = repository.url
-            const branchName = await getBranchName(repositoryPat).catch(error => {
+            let branchName = ''
+
+            if (repositoryPat.includes("github")) {
+                branchName = await getBranchName(repositoryPat).catch(error => {
                     console.error('Ошибка при получении имени ветки:', error)
                     return ''
                 })
+            } else if (repositoryPat.includes("bitbucket")){
+                branchName = await getBitbucketDefaultBranch(repositoryPat).catch(error => {
+                    console.error('Ошибка при получении имени ветки:', error)
+                    return ''
+                })
+            }
+            
 
             for (let rule of data.rules) {
                 const ruleId = rule.id
