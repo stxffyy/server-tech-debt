@@ -183,17 +183,32 @@ function getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, rul
                 return []
             } else {
                 try {
-                    return [
-                        {
-                            message: ruleMessage,
-                            lineNumber: code.split('\n').length,
-                            columnNumber: 0,
-                            filepath: filePath,
-                            url: `${repositoryPat}/blob/${branchName}/${filePath}#L${code.split('\n').length}`,
-                            ruleId: ruleId,
-                            repositoryId: repoId,
-                        }
-                    ]
+                    if (repositoryPat.includes("github")) {
+                        return [
+                            {
+                                message: ruleMessage,
+                                lineNumber: code.split('\n').length,
+                                columnNumber: 0,
+                                filepath: filePath,
+                                url: `${repositoryPat}/blob/${branchName}/${filePath}#L`,
+                                ruleId: ruleId,
+                                repositoryId: repoId,
+                            }
+                        ]
+                    }
+                    else if (repositoryPat.includes("bitbucket")) {
+                        return [
+                            {
+                                message: ruleMessage,
+                                lineNumber: code.split('\n').length,
+                                columnNumber: 0,
+                                filepath: filePath,
+                                url: `${repositoryPat}/src/${branchName}/${filePath}#lines-`,
+                                ruleId: ruleId,
+                                repositoryId: repoId,
+                            }
+                        ]
+                    }
                 } catch (error) {
                     console.error('Ошибка при получении имени ветки:', error);
                     return [];
@@ -278,7 +293,7 @@ async function analyze() {
         throw error;
     }
 }
-// analyze()
+analyze()
 
 module.exports = {
     downloadRepository: downloadRepository,
