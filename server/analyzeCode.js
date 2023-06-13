@@ -5,7 +5,6 @@ const { exec } = require("child_process")
 const glob = require('glob')
 const path = require("path")
 const saveMistakesToDatabase = require('./functions/addMistakesToDB')
-const { error } = require('node:console')
 
 const allMistakesInRepository = [];
 const pathToJsonConfigFile = './config/config.json'
@@ -294,7 +293,7 @@ async function analyze() {
         throw error;
     }
 }
-analyze()
+// analyze()
 
 module.exports = {
     downloadRepository: downloadRepository,
