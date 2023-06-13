@@ -5,6 +5,7 @@ const { exec } = require("child_process")
 const glob = require('glob')
 const path = require("path")
 const saveMistakesToDatabase = require('./functions/addMistakesToDB')
+const { error } = require('node:console')
 
 const allMistakesInRepository = [];
 const pathToJsonConfigFile = './config/config.json'
@@ -175,35 +176,35 @@ async function getBitbucketDefaultBranch(repoUrl) {
   
 
 
-function getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, ruleId, ruleMessage, branchName) {
+function getArrayOfMistakes(callback, code, filePath, repositoryPath, repoId, ruleId, ruleMessage, branchName) {
     const endOfFileObject = {
         asyncFunction: async () => {
-            // console.error(code);
-            if (callback(code)) {
+            const result = await callback(code)
+            if (result.isRuleCompleted)  {
                 return []
             } else {
                 try {
-                    if (repositoryPat.includes("github")) {
+                    if (repositoryPath.includes("github")) {
                         return [
                             {
                                 message: ruleMessage,
-                                lineNumber: code.split('\n').length,
+                                lineNumber: result.lineNumber,
                                 columnNumber: 0,
                                 filepath: filePath,
-                                url: `${repositoryPat}/blob/${branchName}/${filePath}#L`,
+                                url: `${repositoryPath}/blob/${branchName}/${filePath}#L${result.lineNumber}`,
                                 ruleId: ruleId,
                                 repositoryId: repoId,
                             }
                         ]
                     }
-                    else if (repositoryPat.includes("bitbucket")) {
+                    else if (repositoryPath.includes("bitbucket")) {
                         return [
                             {
                                 message: ruleMessage,
-                                lineNumber: code.split('\n').length,
+                                lineNumber: result.lineNumber,
                                 columnNumber: 0,
                                 filepath: filePath,
-                                url: `${repositoryPat}/src/${branchName}/${filePath}#lines-`,
+                                url: `${repositoryPath}/src/${branchName}/${filePath}#lines-${result.lineNumber}`,
                                 ruleId: ruleId,
                                 repositoryId: repoId,
                             }
@@ -220,8 +221,8 @@ function getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, rul
     return endOfFileObject.asyncFunction;
 }
 
-async function executeGetArrOfMistakes(callback, code, filePath, repositoryPat, repoId, ruleId, ruleMessage, branchName) {
-    const asyncFunction = getArrayOfMistakes(callback, code, filePath, repositoryPat, repoId, ruleId, ruleMessage, branchName);
+async function executeGetArrOfMistakes(callback, code, filePath, repositoryPath, repoId, ruleId, ruleMessage, branchName) {
+    const asyncFunction = getArrayOfMistakes(callback, code, filePath, repositoryPath, repoId, ruleId, ruleMessage, branchName);
     const mistakes = await asyncFunction();
     // console.log(mistakes) // возвращаются ошибки
     await saveMistakesToDatabase(mistakes)
@@ -248,16 +249,16 @@ async function analyze() {
         for (let repository of data.repositories) {
             const pathToDownloadedRepository = await downloadRepository(repository.url);
             const repoId = repository.id
-            const repositoryPat = repository.url
+            const repositoryPath = repository.url
             let branchName = ''
 
-            if (repositoryPat.includes("github")) {
-                branchName = await getBranchName(repositoryPat).catch(error => {
+            if (repositoryPath.includes("github")) {
+                branchName = await getBranchName(repositoryPath).catch(error => {
                     console.error('Ошибка при получении имени ветки:', error)
                     return ''
                 })
-            } else if (repositoryPat.includes("bitbucket")){
-                branchName = await getBitbucketDefaultBranch(repositoryPat).catch(error => {
+            } else if (repositoryPath.includes("bitbucket")){
+                branchName = await getBitbucketDefaultBranch(repositoryPath).catch(error => {
                     console.error('Ошибка при получении имени ветки:', error)
                     return ''
                 })
@@ -278,7 +279,7 @@ async function analyze() {
                 for (let filePath of files) {
                     const code = (await fsPromises.readFile(path.resolve(pathToDownloadedRepository, filePath))).toString()
                     if (typeof ruleImplementation === 'function') {
-                        await executeGetArrOfMistakes(ruleImplementation, code, filePath, repositoryPat, repoId, ruleId, ruleMessage, branchName)
+                        await executeGetArrOfMistakes(ruleImplementation, code, filePath, repositoryPath, repoId, ruleId, ruleMessage, branchName)
                     } else {
                         console.error(`Функция проверки не найдена в файле реализации правила: ${updatedPathToImplementation}`)
                     }
